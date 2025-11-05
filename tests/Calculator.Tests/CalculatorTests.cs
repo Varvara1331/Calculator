@@ -1,6 +1,6 @@
 using CalculatorLib;
-
-namespace Calculator.Tests
+using Xunit;
+namespace CalculatorTests
 {
     public class CalculatorTests
     {
