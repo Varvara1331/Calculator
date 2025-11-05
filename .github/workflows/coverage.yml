@@ -1,0 +1,57 @@
+name: Code Coverage Report
+
+on:
+  push:
+    branches: [ master ]
+
+jobs:
+  build:
+    name: Build Project
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: '8.0.x'
+        
+    - name: Build Release
+      run: dotnet build --configuration Release --verbosity normal
+
+  test-with-coverage:
+    name: Run Tests with Coverage
+    runs-on: ubuntu-latest
+    needs: build
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: '8.0.x'
+        
+    - name: Run tests with coverage
+      run: |
+        dotnet test \
+          --configuration Release \
+          --logger "trx;LogFileName=test-results.trx" \
+          --collect:"XPlat Code Coverage" \
+          --results-directory ./coverage-results \
+          -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=cobertura
+
+    - name: List coverage results
+      run: find ./coverage-results -type f -name "*.xml" | head -10
+
+    - name: Upload coverage report
+      uses: actions/upload-artifact@v4
+      with:
+        name: code-coverage
+        path: |
+          coverage-results/**/*.xml
+          coverage-results/**/*.cobertura.xml
+        retention-days: 30
